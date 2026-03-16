@@ -37,7 +37,7 @@ public class ShellCheckSettings {
     }
 
 
-    public static List<PropertyDefinition> getProperties() {
+    public static List<PropertyDefinition> getConditionalProperties() {
         return asList(
                 PropertyDefinition.builder(FILE_SUFFIXES_KEY)
                         .name("File Suffixes")
@@ -46,9 +46,14 @@ public class ShellCheckSettings {
                         .multiValues(true)
                         .category("Shell")
                         .onQualifiers(Qualifiers.PROJECT)
-                        .build(),
+                        .build()
+	);
+    }
+
+    public static List<PropertyDefinition> getProperties() {
+        return asList(
                 PropertyDefinition.builder(SHELLCHECK_PATH_KEY)
-                         .name("Path to shellcheck")
+                        .name("Path to shellcheck")
                         .description("Path to the shellcheck executable. Leave it empty if the command is in the system path.")
                         .defaultValue(SHELLCHECK_PATH_DEFAULT_VALUE)
                         .category(SHELLCHECK_CATEGORY)

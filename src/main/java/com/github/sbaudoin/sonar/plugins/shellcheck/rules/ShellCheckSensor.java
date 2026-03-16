@@ -59,6 +59,11 @@ public class ShellCheckSensor implements Sensor {
 
     private FileLinesContextFactory fileLinesContextFactory;
 
+    /**
+     *  SonarQube supports shell natively from 2025.6
+     *  Highligthing and measures must be disabled to prevent conflicts.
+     */
+    private boolean isShellSupportedBySonar = false;
 
     /**
      * Constructor
@@ -89,6 +94,11 @@ public class ShellCheckSensor implements Sensor {
     @Override
     public void execute(SensorContext context) {
         LOGGER.debug("ShellCheck sensor executed with context: " + context);
+        LOGGER.warn(context.config().toString());
+	if (context.config().getBoolean("sonar.shell.isBuiltin").orElse(false)) {
+            LOGGER.warn("Internal shell support");
+            isShellSupportedBySonar = true;
+        }
 
         // Skip if requested for the project
         Optional<Boolean> skip = context.config().getBoolean(ShellCheckSettings.SKIP_KEY);
@@ -100,7 +110,9 @@ public class ShellCheckSensor implements Sensor {
 
         for (InputFile inputFile : fileSystem.inputFiles(mainFilesPredicate)) {
             // Highlight code
-            saveSyntaxHighlighting(context, inputFile);
+	    if (!isShellSupportedBySonar) {
+                saveSyntaxHighlighting(context, inputFile);
+            }
 
             // Skip analysis if no rules enabled from this plugin
             if (context.activeRules().findByRepository(CheckRepository.REPOSITORY_KEY).isEmpty()) {
@@ -301,7 +313,9 @@ public class ShellCheckSensor implements Sensor {
      * @param script the Shell script to be analyzed
      */
     private void computeLinesMeasures(SensorContext context, InputFile script) {
-        LineCounter.analyse(context, fileLinesContextFactory, script);
+	if (!isShellSupportedBySonar) {
+            LineCounter.analyse(context, fileLinesContextFactory, script);
+	}
     }
 
     /**
